@@ -10,6 +10,7 @@
 }
 
 * { box-sizing: border-box; }
+[hidden] { display: none !important; }
 body { margin: 0; min-height: 100vh; background: var(--cream); color: var(--ink); display: flex; flex-direction: column; }
 button, input, select, textarea { font: inherit; }
 button { min-height: 44px; border: 1px solid var(--line); border-radius: 9px; padding: .55rem .8rem; background: white; color: var(--ink); font-weight: 650; touch-action: manipulation; }
@@ -24,23 +25,26 @@ header { background: white; border-bottom: 1px solid var(--line); padding: max(.
 .toolbar { display: flex; gap: .45rem; overflow-x: auto; padding-bottom: .15rem; scrollbar-width: thin; }
 .toolbar button { flex: 0 0 auto; }
 
-main { width: min(920px, 100%); margin: 0 auto; padding: clamp(.7rem, 2vw, 1.4rem); flex: 1; display: flex; flex-direction: column; }
+main { width: min(920px, 100%); margin: 0 auto; padding: clamp(.7rem, 2vw, 1.4rem); padding-bottom: 15rem; flex: 1; display: flex; flex-direction: column; }
 .card { background: white; border: 1px solid var(--line); border-radius: 16px; padding: clamp(1rem, 4vw, 2.5rem); box-shadow: 0 5px 22px #17322912; }
 .card label { display: block; text-align: center; color: #527065; font-size: .85rem; text-transform: uppercase; letter-spacing: .08em; margin-bottom: .3rem; }
 textarea { width: 100%; resize: vertical; border: 1px solid transparent; border-radius: 10px; background: transparent; color: var(--ink); text-align: center; padding: .35rem; }
-textarea:not(:disabled):focus { border-color: var(--line); outline: 3px solid var(--green-light); }
+textarea:not(:disabled):not([readonly]):focus { border-color: var(--line); outline: 3px solid var(--green-light); }
+textarea[readonly] { cursor: default; pointer-events: none; }
 textarea:disabled { opacity: 1; -webkit-text-fill-color: var(--ink); }
 .prompt { min-height: 4.2rem; font-size: clamp(2rem, 7vw, 3.7rem); font-weight: 750; }
 .answer { min-height: 3.6rem; font-size: clamp(1.65rem, 5vw, 2.8rem); margin-bottom: .8rem; }
 .details { white-space: pre-wrap; font-size: clamp(1rem, 2.8vw, 1.3rem); line-height: 1.65; border-top: 1px solid var(--green-light); padding-top: 1rem; min-height: 1rem; }
-.actions { padding: 1rem 0; margin-top: auto; }
+.actions { position: fixed; z-index: 20; left: 50%; bottom: 2.65rem; transform: translateX(-50%); width: min(920px, calc(100% - 1rem)); padding: .65rem; background: var(--cream); background: color-mix(in srgb, var(--cream) 96%, transparent); border: 1px solid var(--line); border-bottom: 0; border-radius: 14px 14px 0 0; box-shadow: 0 -5px 20px #17322920; }
+.action-header { display: flex; justify-content: flex-end; margin-bottom: .45rem; }
+.action-header button { min-height: 38px; padding: .35rem .7rem; }
 .reveal { width: 100%; background: var(--green); color: white; font-size: 1.2rem; min-height: 58px; }
 .rating-grid { display: grid; grid-template-columns: repeat(9, 1fr); gap: .35rem; }
 .rating-grid button { padding: .5rem .2rem; font-size: 1.15rem; }
 .decision-row { display: grid; grid-template-columns: 1fr 1fr; gap: .55rem; margin-top: .65rem; }
 .decision-row button { min-height: 52px; }
 .hint { margin: .5rem 0 0; text-align: center; color: #527065; font-size: .85rem; }
-footer { position: sticky; bottom: 0; background: var(--green); color: white; padding: .65rem max(.8rem, env(safe-area-inset-right)) max(.65rem, env(safe-area-inset-bottom)); font-size: .9rem; }
+footer { position: fixed; z-index: 30; left: 0; right: 0; bottom: 0; background: var(--green); color: white; padding: .65rem max(.8rem, env(safe-area-inset-right)) max(.65rem, env(safe-area-inset-bottom)); font-size: .9rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
 dialog { width: min(540px, calc(100% - 1.2rem)); max-height: calc(100vh - 2rem); border: 0; border-radius: 15px; padding: 0; color: var(--ink); }
 dialog::backdrop { background: #10251fa8; }
@@ -59,4 +63,22 @@ dialog fieldset { border: 1px solid var(--line); border-radius: 9px; margin-top:
 @media (max-width: 600px) {
   .rating-grid { grid-template-columns: repeat(5, 1fr); }
   .card { border-radius: 12px; }
+}
+
+@media (orientation: landscape) and (max-height: 600px) {
+  header { padding: .35rem .6rem; }
+  .brand { display: none; }
+  main { padding: .45rem .65rem 10.5rem; }
+  .card { padding: .65rem 1rem; }
+  .prompt { min-height: 2.8rem; font-size: clamp(1.7rem, 5vw, 2.7rem); }
+  .answer { min-height: 2.5rem; font-size: clamp(1.4rem, 4vw, 2.2rem); margin-bottom: .25rem; }
+  .details { padding-top: .35rem; line-height: 1.35; }
+  .actions { bottom: 2rem; padding: .35rem; }
+  .action-header { position: absolute; right: .4rem; top: .4rem; margin: 0; }
+  .reveal { width: calc(100% - 7.5rem); min-height: 44px; }
+  .rating-grid { grid-template-columns: repeat(9, 1fr); margin-right: 7.5rem; }
+  .decision-row { margin-top: .3rem; }
+  .decision-row button { min-height: 42px; }
+  .hint { display: none; }
+  footer { padding-top: .35rem; padding-bottom: max(.35rem, env(safe-area-inset-bottom)); font-size: .78rem; }
 }

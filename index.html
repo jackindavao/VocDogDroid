@@ -29,13 +29,14 @@
   <main>
     <section class="card" aria-live="polite">
       <label for="promptInput">Prompt</label>
-      <textarea id="promptInput" class="prompt" rows="2" disabled>Open a TSV file to begin</textarea>
+      <textarea id="promptInput" class="prompt" rows="2" readonly disabled>Open a TSV file to begin</textarea>
       <label for="answerInput">Answer</label>
-      <textarea id="answerInput" class="answer" rows="2" disabled></textarea>
+      <textarea id="answerInput" class="answer" rows="2" readonly disabled></textarea>
       <div id="details" class="details"></div>
     </section>
 
-    <section id="actions" class="actions" aria-label="Practice response">
+    <section id="actions" class="actions" aria-label="Practice response" hidden>
+      <div class="action-header"><button id="editButton">Edit card</button></div>
       <button id="revealButton" class="reveal" disabled>Reveal answer</button>
       <div id="ratingActions" hidden>
         <div class="rating-grid" aria-label="Schedule item">

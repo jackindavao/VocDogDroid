@@ -14,6 +14,7 @@ let answerIndex = 1;
 let detailIndices = [];
 let running = false;
 let revealed = false;
+let editing = false;
 let elapsedMs = 0;
 let startedAt = null;
 
@@ -66,12 +67,32 @@ function setCard(message, answer = "") {
 }
 
 function setActionState(mode) {
+  $("actions").hidden = mode === "idle";
+  $("editButton").disabled = mode === "idle";
   $("revealButton").hidden = mode !== "prompt";
   $("revealButton").disabled = mode !== "prompt";
   $("ratingActions").hidden = mode !== "answer";
   if (mode === "idle") {
     $("revealButton").hidden = false;
     $("revealButton").disabled = true;
+  }
+  document.querySelectorAll("#revealButton, #ratingActions button").forEach((button) => {
+    button.disabled = editing || (button.id === "revealButton" && mode !== "prompt");
+  });
+}
+
+function setEditing(enabled) {
+  if (!deck?.active) return;
+  if (!enabled) commitEdits();
+  editing = enabled;
+  $("promptInput").readOnly = !enabled;
+  $("answerInput").readOnly = !enabled || !revealed;
+  $("editButton").textContent = enabled ? "Done editing" : "Edit card";
+  setActionState(revealed ? "answer" : "prompt");
+  if (enabled) {
+    (revealed ? $("answerInput") : $("promptInput")).focus();
+  } else {
+    document.activeElement?.blur();
   }
 }
 
@@ -121,7 +142,7 @@ function restoreSession() {
     detailIndices = session.detailIndices ?? labels.map((_, i) => i).filter((i) => i > 1);
     elapsedMs = session.elapsedMs || 0;
     startedAt = null;
-    running = revealed = false;
+    running = revealed = editing = false;
     setLoaded(true);
     setCard("Session restored — press Start");
     setActionState("idle");
@@ -151,7 +172,7 @@ async function openFile(file) {
   answerIndex = 1;
   detailIndices = labels.map((_, index) => index).filter((index) => index > 1);
   resetTimer();
-  running = revealed = false;
+  running = revealed = editing = false;
   setLoaded(true);
   setCard("Ready — press Start");
   setActionState("idle");
@@ -170,6 +191,10 @@ function start() {
 
 function stop(updateCard = true) {
   commitEdits();
+  editing = false;
+  $("promptInput").readOnly = true;
+  $("answerInput").readOnly = true;
+  $("editButton").textContent = "Edit card";
   pauseTimer();
   deck?.restoreActive();
   running = revealed = false;
@@ -185,7 +210,7 @@ function showNext() {
   const item = deck?.takeNext();
   if (!item) {
     pauseTimer();
-    running = revealed = false;
+    running = revealed = editing = false;
     $("stopButton").disabled = true;
     $("startButton").disabled = true;
     setCard("Practice range complete", `Elapsed time: ${formatElapsed(elapsedMs)}`);
@@ -197,8 +222,12 @@ function showNext() {
     return;
   }
   revealed = false;
+  editing = false;
   $("promptInput").disabled = false;
+  $("promptInput").readOnly = true;
   $("answerInput").disabled = true;
+  $("answerInput").readOnly = true;
+  $("editButton").textContent = "Edit card";
   $("promptInput").value = fieldValue(item, promptIndex, true);
   $("answerInput").value = "";
   $("details").textContent = "";
@@ -212,6 +241,7 @@ function reveal() {
   commitEdits();
   revealed = true;
   $("answerInput").disabled = false;
+  $("answerInput").readOnly = true;
   $("answerInput").value = fieldValue(deck.active, answerIndex, true);
   $("details").textContent = detailIndices.map((index) => fieldValue(deck.active, index)).join("\n\n");
   setActionState("answer");
@@ -222,6 +252,7 @@ function reveal() {
 function schedule(rating = null) {
   if (!revealed || !deck?.active) return;
   commitEdits();
+  editing = false;
   deck.scheduleActive(rating);
   showNext();
 }
@@ -229,6 +260,7 @@ function schedule(rating = null) {
 function eject() {
   if (!revealed || !deck?.active) return;
   commitEdits();
+  editing = false;
   deck.ejectActive();
   showNext();
 }
@@ -316,6 +348,7 @@ $("randomButton").addEventListener("click", randomize);
 $("rangeButton").addEventListener("click", openRangeDialog);
 $("fieldsButton").addEventListener("click", openFieldsDialog);
 $("viewButton").addEventListener("click", viewAll);
+$("editButton").addEventListener("click", () => setEditing(!editing));
 $("revealButton").addEventListener("click", reveal);
 $("endButton").addEventListener("click", () => schedule(null));
 $("ejectButton").addEventListener("click", eject);
@@ -367,6 +400,13 @@ $("fieldsForm").addEventListener("submit", (event) => {
 
 document.addEventListener("keydown", (event) => {
   if (!running || event.target.closest("dialog")) return;
+  if (editing) {
+    if (event.key === "Enter" && !event.shiftKey) {
+      event.preventDefault();
+      setEditing(false);
+    }
+    return;
+  }
   if (event.key === "Enter" && !event.shiftKey) {
     event.preventDefault();
     revealed ? schedule(null) : reveal();
